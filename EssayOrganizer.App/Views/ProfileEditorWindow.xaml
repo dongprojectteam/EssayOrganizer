@@ -1,0 +1,193 @@
+<ui:FluentWindow x:Class="EssayOrganizer.App.Views.ProfileEditorWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 Title="프로파일 설정"
+                 Width="460"
+                 SizeToContent="Height"
+                 WindowStartupLocation="CenterOwner"
+                 ResizeMode="NoResize"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- TitleBar -->
+        <ui:TitleBar Grid.Row="0"
+                     Title="프로파일 설정"
+                     ShowMaximize="False"
+                     ShowMinimize="False" />
+
+        <StackPanel Grid.Row="1" Margin="28,12,28,24">
+            <TextBlock x:Name="HeaderText"
+                       Text="새 프로파일 만들기"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                       HorizontalAlignment="Center" />
+
+            <!-- Live Avatar Preview Card -->
+            <Border Margin="0,16,0,20"
+                    Padding="16"
+                    CornerRadius="14"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    HorizontalAlignment="Center"
+                    Width="160">
+                <StackPanel HorizontalAlignment="Center">
+                    <Grid Width="68" Height="68">
+                        <Border x:Name="PreviewAvatarBorder"
+                                Width="68"
+                                Height="68"
+                                CornerRadius="34">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#000000" BlurRadius="8" Opacity="0.15" ShadowDepth="2" />
+                            </Border.Effect>
+                            <TextBlock x:Name="PreviewInitial"
+                                       Text="?"
+                                       FontSize="28"
+                                       FontWeight="Bold"
+                                       Foreground="White"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <Border CornerRadius="34">
+                            <Border.OpacityMask>
+                                <VisualBrush>
+                                    <VisualBrush.Visual>
+                                        <Border Width="68" Height="68" CornerRadius="34" Background="Black" />
+                                    </VisualBrush.Visual>
+                                </VisualBrush>
+                            </Border.OpacityMask>
+                            <Image x:Name="PreviewImage" Stretch="UniformToFill" Visibility="Collapsed" />
+                        </Border>
+                    </Grid>
+                    <TextBlock x:Name="PreviewName"
+                               Text="새 프로파일"
+                               Margin="0,10,0,0"
+                               FontWeight="SemiBold"
+                               FontSize="13"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                               HorizontalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               MaxWidth="140" />
+                </StackPanel>
+            </Border>
+
+            <!-- Name Input Field -->
+            <TextBlock Text="프로파일 이름"
+                       FontSize="13"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                       Margin="0,0,0,6" />
+            <ui:TextBox x:Name="NameBox"
+                        MaxLength="80"
+                        PlaceholderText="사용자 또는 학생 이름을 입력하세요"
+                        Icon="{ui:SymbolIcon Symbol=Person24}"
+                        ClearButtonEnabled="True"
+                        Padding="10,8"
+                        TextChanged="NameBox_TextChanged" />
+
+            <!-- Theme Color Selection -->
+            <TextBlock Text="기본 테마 색상"
+                       FontSize="13"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                       Margin="0,18,0,8" />
+            <Grid HorizontalAlignment="Center">
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton x:Name="Violet"
+                                 IsChecked="True"
+                                 Checked="DefaultAvatar_Checked"
+                                 GroupName="avatar"
+                                 Margin="0,0,14,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="16" Height="16" CornerRadius="8" Background="#8B5CF6" Margin="0,0,6,0" />
+                            <TextBlock Text="보라" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="Coral"
+                                 Checked="DefaultAvatar_Checked"
+                                 GroupName="avatar"
+                                 Margin="0,0,14,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="16" Height="16" CornerRadius="8" Background="#F43F5E" Margin="0,0,6,0" />
+                            <TextBlock Text="코랄" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="Ocean"
+                                 Checked="DefaultAvatar_Checked"
+                                 GroupName="avatar"
+                                 Margin="0,0,14,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="16" Height="16" CornerRadius="8" Background="#0284C7" Margin="0,0,6,0" />
+                            <TextBlock Text="바다" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="Forest"
+                                 Checked="DefaultAvatar_Checked"
+                                 GroupName="avatar">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="16" Height="16" CornerRadius="8" Background="#059669" Margin="0,0,6,0" />
+                            <TextBlock Text="숲" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
+                </StackPanel>
+            </Grid>
+
+            <!-- Custom Photo Selection -->
+            <TextBlock Text="또는 프로필 사진"
+                       FontSize="13"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                       Margin="0,16,0,8" />
+            <StackPanel Orientation="Horizontal">
+                <ui:Button Content="사진 파일 선택…"
+                           Icon="{ui:SymbolIcon Symbol=Camera24}"
+                           Appearance="Secondary"
+                           Click="ChoosePhoto_Click"
+                           Margin="0,0,8,0" />
+                <ui:Button x:Name="RemovePhotoButton"
+                           Content="사진 지우기"
+                           Icon="{ui:SymbolIcon Symbol=Dismiss24}"
+                           Appearance="Transparent"
+                           Click="RemovePhoto_Click"
+                           Visibility="Collapsed" />
+            </StackPanel>
+            <TextBlock x:Name="PhotoText"
+                       Text="기본 색상 아바타를 사용합니다"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       FontSize="12"
+                       Margin="2,6,0,0"
+                       TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+
+        <!-- Bottom Actions -->
+        <Border Grid.Row="2"
+                Padding="24,14"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                Background="{DynamicResource ApplicationBackgroundBrush}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <ui:Button Content="취소"
+                           Appearance="Secondary"
+                           IsCancel="True"
+                           Padding="16,8"
+                           Margin="0,0,10,0" />
+                <ui:Button x:Name="SaveButton"
+                           Content="만들기"
+                           Icon="{ui:SymbolIcon Symbol=Checkmark24}"
+                           Appearance="Primary"
+                           Click="Create_Click"
+                           IsDefault="True"
+                           Padding="18,8" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</ui:FluentWindow>

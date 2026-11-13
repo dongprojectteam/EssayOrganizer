@@ -1,0 +1,881 @@
+<ui:FluentWindow x:Class="EssayOrganizer.App.MainWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 mc:Ignorable="d"
+                 Title="논술 정리"
+                 Width="1320"
+                 Height="840"
+                 MinWidth="1020"
+                 MinHeight="660"
+                 WindowStartupLocation="CenterScreen"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica">
+
+    <ui:FluentWindow.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+        <!-- Clean list item container without legacy blue highlight -->
+        <Style x:Key="SidebarItemContainerStyle" TargetType="ListBoxItem">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="6,3" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="RootBorder"
+                                CornerRadius="8"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="1"
+                                SnapsToDevicePixels="True"
+                                Cursor="Hand">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="RootBorder" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="RootBorder" Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+                                <Setter TargetName="RootBorder" Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- FlowDocument Default Foreground for dark mode -->
+        <Style TargetType="{x:Type FlowDocument}">
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        </Style>
+    </ui:FluentWindow.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Modern Fluent TitleBar -->
+        <ui:TitleBar Grid.Row="0"
+                     Title="{Binding Title, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}">
+            <ui:TitleBar.Header>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                    <!-- Switchable Profile Button -->
+                    <ui:Button Appearance="Secondary"
+                               ToolTip="프로파일 전환 (클릭)"
+                               Click="SwitchProfile_Click"
+                               Padding="10,4"
+                               Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <ui:SymbolIcon Symbol="PersonCircle20" FontSize="15" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" Margin="0,0,6,0" />
+                            <TextBlock Text="{Binding CurrentProfile.Name, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <ui:SymbolIcon Symbol="ChevronDown12" FontSize="10" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="6,0,0,0" />
+                        </StackPanel>
+                    </ui:Button>
+
+                    <Border CornerRadius="8"
+                            Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            Padding="6,3"
+                            Margin="0,0,10,0"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="{Binding AppVersionText, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+                                   FontSize="11"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </Border>
+
+                    <ui:Button Appearance="Transparent"
+                               Icon="{ui:SymbolIcon Symbol=WeatherMoon20}"
+                               ToolTip="다크/라이트 테마 전환"
+                               Click="ThemeToggle_Click"
+                               Padding="6,4"
+                               Margin="0,0,8,0" />
+
+                    <!-- Windows Startup Toggle -->
+                    <Border CornerRadius="8"
+                            Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            Padding="8,3"
+                            VerticalAlignment="Center"
+                            ToolTip="컴퓨터 부팅 시 논술 정리 앱 자동 실행">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <ui:SymbolIcon Symbol="Power20" FontSize="13" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" Margin="0,0,6,0" VerticalAlignment="Center" />
+                            <TextBlock Text="시작 시 자동 실행"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,6,0" />
+                            <ui:ToggleSwitch x:Name="StartupToggle"
+                                             VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ui:TitleBar.Header>
+        </ui:TitleBar>
+
+        <!-- Command Bar / Ribbon -->
+        <Border Grid.Row="1"
+                Padding="16,8"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,0,0,1"
+                Background="{DynamicResource ApplicationBackgroundBrush}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Action Buttons -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Primary CTA -->
+                    <ui:Button Content="새 논술"
+                               Icon="{ui:SymbolIcon Symbol=Add24}"
+                               Appearance="Primary"
+                               Command="{Binding CreateNewEssayCommand}"
+                               Margin="0,0,8,0"
+                               Padding="14,7" />
+
+                    <!-- Primary Essay Actions -->
+                    <ui:Button Content="편집"
+                               Icon="{ui:SymbolIcon Symbol=Edit24}"
+                               Appearance="Secondary"
+                               Command="{Binding EditEssayCommand}"
+                               IsEnabled="{Binding IsReadMode}"
+                               Margin="0,0,6,0"
+                               Padding="12,7" />
+                    <ui:Button Content="삭제"
+                               Icon="{ui:SymbolIcon Symbol=Delete24}"
+                               Appearance="Secondary"
+                               Command="{Binding DeleteEssayCommand}"
+                               IsEnabled="{Binding IsReadMode}"
+                               Margin="0,0,6,0"
+                               Padding="12,7" />
+                    <ui:Button Content="출력"
+                               Icon="{ui:SymbolIcon Symbol=Print24}"
+                               Appearance="Secondary"
+                               Command="{Binding PrintEssayCommand}"
+                               IsEnabled="{Binding IsReadMode}"
+                               Margin="0,0,12,0"
+                               Padding="12,7" />
+
+                    <!-- Divider -->
+                    <Rectangle Width="1" Height="22" Fill="{DynamicResource CardStrokeColorDefaultBrush}" Margin="0,0,12,0" VerticalAlignment="Center" />
+
+                    <!-- Secondary Tools / Backup -->
+                    <ui:Button Content="백업"
+                               Icon="{ui:SymbolIcon Symbol=ArrowUpload24}"
+                               Appearance="Transparent"
+                               Command="{Binding CreateBackupCommand}"
+                               Margin="0,0,6,0"
+                               Padding="10,7" />
+                    <ui:Button Content="복원"
+                               Icon="{ui:SymbolIcon Symbol=ArrowDownload24}"
+                               Appearance="Transparent"
+                               Command="{Binding RestoreBackupCommand}"
+                               Margin="0,0,8,0"
+                               Padding="10,7" />
+
+                    <!-- Discreet move to other profile button -->
+                    <ui:Button Content="이 글을 다른 프로파일로 이동"
+                               Icon="{ui:SymbolIcon Symbol=PersonSwap24}"
+                               Appearance="Transparent"
+                               Command="{Binding MoveEssayCommand}"
+                               IsEnabled="{Binding IsReadMode}"
+                               ToolTip="현재 선택한 논술을 다른 프로파일로 이동합니다"
+                               Margin="0,0,6,0"
+                               Padding="10,7" />
+                </StackPanel>
+
+                <!-- Right: Font Sizing Controls -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ui:Button Content="A-"
+                               Appearance="Secondary"
+                               Command="{Binding DecreaseFontCommand}"
+                               ToolTip="본문 글꼴 축소"
+                               Margin="0,0,4,0"
+                               Padding="8,5" />
+                    <ui:Button Content="A+"
+                               Appearance="Secondary"
+                               Command="{Binding IncreaseFontCommand}"
+                               ToolTip="본문 글꼴 확대"
+                               Margin="0,0,4,0"
+                               Padding="8,5" />
+                    <ui:Button Content="기본"
+                               Appearance="Transparent"
+                               Command="{Binding ResetFontCommand}"
+                               ToolTip="기본 글꼴 크기로 복원"
+                               Margin="0,0,8,0"
+                               Padding="8,5" />
+
+                    <!-- Font size pill badge -->
+                    <Border CornerRadius="8"
+                            Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            Padding="8,4"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="{Binding BodyFontSize, StringFormat=본문 {0:F0}px}"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Body Workspace -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="340" MinWidth="260" MaxWidth="480" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: Sidebar -->
+            <Border Grid.Column="0"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="0,0,1,0"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                <DockPanel>
+                    <!-- Search Box Area -->
+                    <Border DockPanel.Dock="Top"
+                            Padding="14,12"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="0,0,0,1">
+                        <ui:TextBox Text="{Binding Sidebar.SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                                    PlaceholderText="논술 검색 (제목, 본문...)"
+                                    Icon="{ui:SymbolIcon Symbol=Search24}"
+                                    ClearButtonEnabled="True"
+                                    FontSize="13"
+                                    Padding="10,7" />
+                    </Border>
+
+                    <!-- Essay List (No horizontal scroll, clean text wrapping) -->
+                    <ListBox ItemsSource="{Binding Sidebar.EssaysView}"
+                             SelectedItem="{Binding Sidebar.SelectedEssay, Mode=TwoWay}"
+                             ItemContainerStyle="{StaticResource SidebarItemContainerStyle}"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             Padding="4,6"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListBox.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="6,12,6,4"
+                                                Padding="10,4"
+                                                CornerRadius="6"
+                                                Background="{DynamicResource SubtleFillColorSecondaryBrush}">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="📅" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontWeight="SemiBold"
+                                                           FontSize="12"
+                                                           Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </GroupStyle.HeaderTemplate>
+                            </GroupStyle>
+                        </ListBox.GroupStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="12,10"
+                                        CornerRadius="8"
+                                        Background="Transparent">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Document icon badge -->
+                                        <Border Grid.Column="0"
+                                                Width="32"
+                                                Height="32"
+                                                CornerRadius="6"
+                                                Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                                                VerticalAlignment="Top"
+                                                Margin="0,2,10,0">
+                                            <ui:SymbolIcon Symbol="DocumentText20"
+                                                           FontSize="16"
+                                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center" />
+                                        </Border>
+
+                                        <!-- Text info constrained to column width -->
+                                        <Grid Grid.Column="1">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Grid.Row="0"
+                                                       Text="{Binding Title}"
+                                                       FontWeight="SemiBold"
+                                                       FontSize="14"
+                                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                       TextTrimming="CharacterEllipsis" />
+
+                                            <TextBlock Grid.Row="1"
+                                                       Text="{Binding Preview}"
+                                                       Margin="0,4,0,0"
+                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                       FontSize="12"
+                                                       TextTrimming="CharacterEllipsis" />
+
+                                            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,6,0,0">
+                                                <ui:SymbolIcon Symbol="Clock20" FontSize="11" Foreground="{DynamicResource TextFillColorTertiaryBrush}" Margin="0,0,4,0" VerticalAlignment="Center" />
+                                                <TextBlock Text="{Binding UpdatedDisplay}"
+                                                           Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                           FontSize="11" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- Right: Content Workspace -->
+            <Grid Grid.Column="1" Margin="22,18">
+                <!-- Mode 1: Empty State -->
+                <Grid Visibility="{Binding IsEmptyMode, Converter={StaticResource BooleanToVisibilityConverter}}"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Center">
+                    <StackPanel HorizontalAlignment="Center">
+                        <Border Width="80"
+                                Height="80"
+                                CornerRadius="40"
+                                Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,18">
+                            <ui:SymbolIcon Symbol="DocumentBulletListMultiple24"
+                                           FontSize="40"
+                                           Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="작성된 논술이 없습니다"
+                                   FontSize="22"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="새 논술 버튼을 눌러 자유롭게 생각을 기록하고 정리해 보세요."
+                                   Margin="0,8,0,20"
+                                   FontSize="14"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   HorizontalAlignment="Center" />
+                        <ui:Button Content="새 논술 작성하기"
+                                   Icon="{ui:SymbolIcon Symbol=Add24}"
+                                   Appearance="Primary"
+                                   Command="{Binding CreateNewEssayCommand}"
+                                   HorizontalAlignment="Center"
+                                   Padding="18,9" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Mode 2: Read Mode -->
+                <Grid Visibility="{Binding IsReadMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Article Header Card -->
+                    <Border Grid.Row="0"
+                            Margin="0,0,0,16"
+                            Padding="20,16"
+                            CornerRadius="12"
+                            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Reader.Title}"
+                                           FontSize="26"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                           TextWrapping="Wrap" />
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <Border CornerRadius="6"
+                                            Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                                            Padding="8,3"
+                                            Margin="0,0,8,0">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <ui:SymbolIcon Symbol="Clock20" FontSize="13" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,4,0" />
+                                            <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                       FontSize="12"
+                                                       Text="{Binding Reader.UpdatedAt, StringFormat=마지막 수정: {0:yyyy-MM-dd HH:mm}}" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <ui:Button Grid.Column="1"
+                                       Content="수정하기"
+                                       Icon="{ui:SymbolIcon Symbol=Edit24}"
+                                       Appearance="Primary"
+                                       Command="{Binding EditEssayCommand}"
+                                       VerticalAlignment="Center"
+                                       Padding="16,8" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Reader Paper Card -->
+                    <Border Grid.Row="1"
+                            CornerRadius="12"
+                            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            Padding="8">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000" BlurRadius="12" Opacity="0.06" ShadowDepth="2" />
+                        </Border.Effect>
+                        <RichTextBox x:Name="RichReader"
+                                     IsReadOnly="True"
+                                     IsDocumentEnabled="True"
+                                     VerticalScrollBarVisibility="Auto"
+                                     HorizontalScrollBarVisibility="Disabled"
+                                     Padding="24"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                     FontSize="{Binding BodyFontSize}">
+                            <RichTextBox.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Command="{x:Static ApplicationCommands.Copy}" Header="복사" InputGestureText="Ctrl+C">
+                                        <MenuItem.Icon><ui:SymbolIcon Symbol="Copy20" /></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Command="{x:Static ApplicationCommands.SelectAll}" Header="모두 선택" InputGestureText="Ctrl+A">
+                                        <MenuItem.Icon><ui:SymbolIcon Symbol="SelectAllOn20" /></MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </RichTextBox.ContextMenu>
+                        </RichTextBox>
+                    </Border>
+                </Grid>
+
+                <!-- Mode 3: Edit Mode -->
+                <Grid Visibility="{Binding IsEditMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Editor Header & Back button -->
+                    <DockPanel Grid.Row="0" Margin="0,0,0,12">
+                        <TextBlock Text="{Binding EditorHeaderText}"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                   VerticalAlignment="Center" />
+                        <ui:Button DockPanel.Dock="Right"
+                                   Content="읽기 모드로"
+                                   Icon="{ui:SymbolIcon Symbol=Eye24}"
+                                   Appearance="Secondary"
+                                   Command="{Binding BackToReadModeCommand}"
+                                   Padding="14,7" />
+                    </DockPanel>
+
+                    <!-- Title Input -->
+                    <ui:TextBox Grid.Row="1"
+                                Text="{Binding Editor.Title, UpdateSourceTrigger=PropertyChanged}"
+                                PlaceholderText="논술 제목을 입력하세요..."
+                                Icon="{ui:SymbolIcon Symbol=Drafts24}"
+                                ClearButtonEnabled="True"
+                                Padding="12,10"
+                                Margin="0,0,0,12"
+                                FontSize="16"
+                                FontWeight="SemiBold" />
+
+                    <!-- Formatting Toolbar -->
+                    <Border Grid.Row="2"
+                            Margin="0,0,0,12"
+                            Padding="8,5"
+                            CornerRadius="8"
+                            Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1">
+                        <DockPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <!-- Basic Formatting: Bold, Italic, Underline -->
+                                <ui:Button Command="{x:Static EditingCommands.ToggleBold}"
+                                           CommandTarget="{Binding ElementName=RichEditor}"
+                                           Appearance="Transparent"
+                                           ToolTip="굵게 (Ctrl+B)"
+                                           Padding="8,5"
+                                           Margin="0,0,2,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:SymbolIcon Symbol="TextBold24" FontSize="16" />
+                                        <TextBlock Text="굵게" Margin="5,0,0,0" VerticalAlignment="Center" FontWeight="Bold" />
+                                    </StackPanel>
+                                </ui:Button>
+
+                                <ui:Button Command="{x:Static EditingCommands.ToggleItalic}"
+                                           CommandTarget="{Binding ElementName=RichEditor}"
+                                           Appearance="Transparent"
+                                           ToolTip="기울임꼴 (Ctrl+I)"
+                                           Padding="8,5"
+                                           Margin="0,0,2,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:SymbolIcon Symbol="TextItalic24" FontSize="16" />
+                                        <TextBlock Text="기울임" Margin="5,0,0,0" VerticalAlignment="Center" FontStyle="Italic" />
+                                    </StackPanel>
+                                </ui:Button>
+
+                                <ui:Button Command="{x:Static EditingCommands.ToggleUnderline}"
+                                           CommandTarget="{Binding ElementName=RichEditor}"
+                                           Appearance="Transparent"
+                                           ToolTip="밑줄 적용 (Ctrl+U)"
+                                           Padding="8,5"
+                                           Margin="0,0,2,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:SymbolIcon Symbol="TextUnderline24" FontSize="16" />
+                                        <TextBlock Text="밑줄" Margin="5,0,0,0" VerticalAlignment="Center" TextDecorations="Underline" />
+                                    </StackPanel>
+                                </ui:Button>
+
+                                <Rectangle Width="1" Height="18" Fill="{DynamicResource CardStrokeColorDefaultBrush}" Margin="6,0" VerticalAlignment="Center" />
+
+                                <!-- Highlight tools -->
+                                <ui:Button Click="Highlight_Click"
+                                           Appearance="Transparent"
+                                           ToolTip="선택한 글자에 노란색 형광펜 적용"
+                                           Padding="8,5"
+                                           Margin="0,0,2,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Width="14" Height="14" CornerRadius="3" Background="#FDE047" BorderBrush="#EAB308" BorderThickness="1" Margin="0,0,5,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="형광펜" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </ui:Button>
+
+                                <ui:Button Click="ClearHighlight_Click"
+                                           Appearance="Transparent"
+                                           ToolTip="선택한 글자의 형광펜 제거"
+                                           Padding="8,5">
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:SymbolIcon Symbol="EraserTool24" FontSize="16" />
+                                        <TextBlock Text="지우기" Margin="5,0,0,0" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </ui:Button>
+
+                                <Rectangle Width="1" Height="18" Fill="{DynamicResource CardStrokeColorDefaultBrush}" Margin="6,0" VerticalAlignment="Center" />
+
+                                <!-- Circle Numbers (0-20) Popup Palette -->
+                                <Grid>
+                                    <ui:Button x:Name="CircleNumberButton"
+                                               Click="CircleNumberButton_Click"
+                                               Appearance="Transparent"
+                                               ToolTip="원문자 숫자 (⓪ ~ ⑳) 삽입"
+                                               Padding="8,5"
+                                               Margin="0,0,2,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="⓪ 원문자" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                            <ui:SymbolIcon Symbol="ChevronDown16" FontSize="11" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </ui:Button>
+
+                                    <Popup x:Name="CircleNumberPopup"
+                                           PlacementTarget="{Binding ElementName=CircleNumberButton}"
+                                           Placement="Bottom"
+                                           StaysOpen="False"
+                                           AllowsTransparency="True">
+                                        <Border CornerRadius="12"
+                                                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                                                BorderThickness="1"
+                                                Padding="12"
+                                                Margin="4">
+                                            <Border.Effect>
+                                                <DropShadowEffect Color="#000000" BlurRadius="16" Opacity="0.16" ShadowDepth="4" />
+                                            </Border.Effect>
+                                            <StackPanel>
+                                                <TextBlock Text="원문자 번호 선택 (⓪ ~ ⑳)"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                           Margin="4,0,0,8" />
+                                                <UniformGrid Columns="7">
+                                                    <ui:Button Content="⓪" Tag="⓪" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="①" Tag="①" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="②" Tag="②" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="③" Tag="③" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="④" Tag="④" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="⑤" Tag="⑤" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="⑥" Tag="⑥" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+
+                                                    <ui:Button Content="⑦" Tag="⑦" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="⑧" Tag="⑧" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="⑨" Tag="⑨" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="⑩" Tag="⑩" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="⑪" Tag="⑪" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="⑫" Tag="⑫" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="⑬" Tag="⑬" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+
+                                                    <ui:Button Content="⑭" Tag="⑭" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="⑮" Tag="⑮" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="⑯" Tag="⑯" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="⑰" Tag="⑰" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="⑱" Tag="⑱" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="⑲" Tag="⑲" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                    <ui:Button Content="⑳" Tag="⑳" Click="InsertSymbol_Click" Appearance="Secondary" Width="32" Height="32" Margin="2" Padding="0" FontSize="14" />
+                                                </UniformGrid>
+                                            </StackPanel>
+                                        </Border>
+                                    </Popup>
+                                </Grid>
+
+                                <!-- More Symbols Dropdown -->
+                                <ui:Button x:Name="SymbolMenuButton"
+                                           Click="SymbolMenuButton_Click"
+                                           Appearance="Transparent"
+                                           ToolTip="논술 특수기호 및 괄호 삽입"
+                                           Padding="8,5">
+                                    <ui:Button.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="단락 &amp; 항목 기호">
+                                                <MenuItem Header="가운데 점 (·)" Click="InsertSymbol_Click" Tag="· " />
+                                                <MenuItem Header="불릿 (•)" Click="InsertSymbol_Click" Tag="• " />
+                                                <MenuItem Header="네모 (■)" Click="InsertSymbol_Click" Tag="■ " />
+                                                <MenuItem Header="다이아몬드 (◆)" Click="InsertSymbol_Click" Tag="◆ " />
+                                                <MenuItem Header="참고표 (※)" Click="InsertSymbol_Click" Tag="※ " />
+                                                <MenuItem Header="지시표 (☞)" Click="InsertSymbol_Click" Tag="☞ " />
+                                            </MenuItem>
+                                            <MenuItem Header="논술 괄호">
+                                                <MenuItem Header="홑낫표 (「」) - 서명/소제목" Click="InsertSymbol_Click" Tag="「」" />
+                                                <MenuItem Header="겹낫표 (『』) - 책 제목/인용" Click="InsertSymbol_Click" Tag="『』" />
+                                                <MenuItem Header="이중화살괄호 (《》)" Click="InsertSymbol_Click" Tag="《》" />
+                                                <MenuItem Header="볼드 대괄호 (【】)" Click="InsertSymbol_Click" Tag="【】" />
+                                            </MenuItem>
+                                            <MenuItem Header="문장 부호">
+                                                <MenuItem Header="줄표 (―)" Click="InsertSymbol_Click" Tag="―" />
+                                                <MenuItem Header="말줄임표 (…)" Click="InsertSymbol_Click" Tag="…" />
+                                                <MenuItem Header="물결표 (～)" Click="InsertSymbol_Click" Tag="～" />
+                                            </MenuItem>
+                                            <Separator />
+                                            <MenuItem Header="로마 숫자 (Ⅰ, Ⅱ, Ⅲ, Ⅳ, Ⅴ)">
+                                                <MenuItem Header="Ⅰ" Click="InsertSymbol_Click" Tag="Ⅰ" />
+                                                <MenuItem Header="Ⅱ" Click="InsertSymbol_Click" Tag="Ⅱ" />
+                                                <MenuItem Header="Ⅲ" Click="InsertSymbol_Click" Tag="Ⅲ" />
+                                                <MenuItem Header="Ⅳ" Click="InsertSymbol_Click" Tag="Ⅳ" />
+                                                <MenuItem Header="Ⅴ" Click="InsertSymbol_Click" Tag="Ⅴ" />
+                                            </MenuItem>
+                                            <MenuItem Header="한글 원문자 (㉠ ~ ㉤)">
+                                                <MenuItem Header="㉠" Click="InsertSymbol_Click" Tag="㉠" />
+                                                <MenuItem Header="㉡" Click="InsertSymbol_Click" Tag="㉡" />
+                                                <MenuItem Header="㉢" Click="InsertSymbol_Click" Tag="㉢" />
+                                                <MenuItem Header="㉣" Click="InsertSymbol_Click" Tag="㉣" />
+                                                <MenuItem Header="㉤" Click="InsertSymbol_Click" Tag="㉤" />
+                                            </MenuItem>
+                                        </ContextMenu>
+                                    </ui:Button.ContextMenu>
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:SymbolIcon Symbol="Symbols24" FontSize="16" />
+                                        <TextBlock Text="기호" Margin="5,0,4,0" VerticalAlignment="Center" />
+                                        <ui:SymbolIcon Symbol="ChevronDown16" FontSize="11" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </ui:Button>
+                            </StackPanel>
+
+                            <!-- Autosave status text -->
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0">
+                                <ui:SymbolIcon Symbol="CheckmarkCircle24" FontSize="14" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding Editor.SaveStatus}"
+                                           Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Editor Paper Card -->
+                    <Border Grid.Row="3"
+                            CornerRadius="12"
+                            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            Padding="8">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000" BlurRadius="12" Opacity="0.06" ShadowDepth="2" />
+                        </Border.Effect>
+                        <RichTextBox x:Name="RichEditor"
+                                     TextChanged="RichEditor_TextChanged"
+                                     AcceptsReturn="True"
+                                     VerticalScrollBarVisibility="Auto"
+                                     HorizontalScrollBarVisibility="Disabled"
+                                     Padding="24"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                     CaretBrush="{DynamicResource TextFillColorPrimaryBrush}"
+                                     FontSize="{Binding BodyFontSize}">
+                            <!-- Context Menu (Right Click) -->
+                            <RichTextBox.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Command="{x:Static ApplicationCommands.Cut}" Header="잘라내기" InputGestureText="Ctrl+X">
+                                        <MenuItem.Icon><ui:SymbolIcon Symbol="Cut20" /></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Command="{x:Static ApplicationCommands.Copy}" Header="복사" InputGestureText="Ctrl+C">
+                                        <MenuItem.Icon><ui:SymbolIcon Symbol="Copy20" /></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Command="{x:Static ApplicationCommands.Paste}" Header="붙여넣기" InputGestureText="Ctrl+V">
+                                        <MenuItem.Icon><ui:SymbolIcon Symbol="ClipboardPaste20" /></MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator />
+                                    <MenuItem Command="{x:Static EditingCommands.ToggleBold}" Header="굵게" InputGestureText="Ctrl+B">
+                                        <MenuItem.Icon><ui:SymbolIcon Symbol="TextBold20" /></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Command="{x:Static EditingCommands.ToggleItalic}" Header="기울임꼴" InputGestureText="Ctrl+I">
+                                        <MenuItem.Icon><ui:SymbolIcon Symbol="TextItalic20" /></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Command="{x:Static EditingCommands.ToggleUnderline}" Header="밑줄" InputGestureText="Ctrl+U">
+                                        <MenuItem.Icon><ui:SymbolIcon Symbol="TextUnderline20" /></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="형광펜 칠하기" Click="Highlight_Click">
+                                        <MenuItem.Icon>
+                                            <Border Width="14" Height="14" CornerRadius="3" Background="#FDE047" BorderBrush="#EAB308" BorderThickness="1" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="형광펜 지우기" Click="ClearHighlight_Click">
+                                        <MenuItem.Icon><ui:SymbolIcon Symbol="EraserTool20" /></MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator />
+                                    <MenuItem Header="기호 삽입">
+                                        <MenuItem.Icon><ui:SymbolIcon Symbol="Symbols20" /></MenuItem.Icon>
+                                        <MenuItem Header="가운데 점 (·)" Click="InsertSymbol_Click" Tag="· " />
+                                        <MenuItem Header="불릿 (•)" Click="InsertSymbol_Click" Tag="• " />
+                                        <MenuItem Header="네모 (■)" Click="InsertSymbol_Click" Tag="■ " />
+                                        <MenuItem Header="다이아몬드 (◆)" Click="InsertSymbol_Click" Tag="◆ " />
+                                        <MenuItem Header="참고표 (※)" Click="InsertSymbol_Click" Tag="※ " />
+                                        <Separator />
+                                        <MenuItem Header="원문자 (⓪ ~ ⑩)">
+                                            <MenuItem Header="⓪" Click="InsertSymbol_Click" Tag="⓪" />
+                                            <MenuItem Header="①" Click="InsertSymbol_Click" Tag="①" />
+                                            <MenuItem Header="②" Click="InsertSymbol_Click" Tag="②" />
+                                            <MenuItem Header="③" Click="InsertSymbol_Click" Tag="③" />
+                                            <MenuItem Header="④" Click="InsertSymbol_Click" Tag="④" />
+                                            <MenuItem Header="⑤" Click="InsertSymbol_Click" Tag="⑤" />
+                                            <MenuItem Header="⑥" Click="InsertSymbol_Click" Tag="⑥" />
+                                            <MenuItem Header="⑦" Click="InsertSymbol_Click" Tag="⑦" />
+                                            <MenuItem Header="⑧" Click="InsertSymbol_Click" Tag="⑧" />
+                                            <MenuItem Header="⑨" Click="InsertSymbol_Click" Tag="⑨" />
+                                            <MenuItem Header="⑩" Click="InsertSymbol_Click" Tag="⑩" />
+                                        </MenuItem>
+                                        <MenuItem Header="원문자 (⑪ ~ ⑳)">
+                                            <MenuItem Header="⑪" Click="InsertSymbol_Click" Tag="⑪" />
+                                            <MenuItem Header="⑫" Click="InsertSymbol_Click" Tag="⑫" />
+                                            <MenuItem Header="⑬" Click="InsertSymbol_Click" Tag="⑬" />
+                                            <MenuItem Header="⑭" Click="InsertSymbol_Click" Tag="⑭" />
+                                            <MenuItem Header="⑮" Click="InsertSymbol_Click" Tag="⑮" />
+                                            <MenuItem Header="⑯" Click="InsertSymbol_Click" Tag="⑯" />
+                                            <MenuItem Header="⑰" Click="InsertSymbol_Click" Tag="⑰" />
+                                            <MenuItem Header="⑱" Click="InsertSymbol_Click" Tag="⑱" />
+                                            <MenuItem Header="⑲" Click="InsertSymbol_Click" Tag="⑲" />
+                                            <MenuItem Header="⑳" Click="InsertSymbol_Click" Tag="⑳" />
+                                        </MenuItem>
+                                        <Separator />
+                                        <MenuItem Header="홑낫표 (「」)" Click="InsertSymbol_Click" Tag="「」" />
+                                        <MenuItem Header="겹낫표 (『』)" Click="InsertSymbol_Click" Tag="『』" />
+                                        <MenuItem Header="말줄임표 (…)" Click="InsertSymbol_Click" Tag="…" />
+                                    </MenuItem>
+                                    <Separator />
+                                    <MenuItem Header="이 글을 다른 프로파일로 이동"
+                                              Command="{Binding MoveEssayCommand}">
+                                        <MenuItem.Icon><ui:SymbolIcon Symbol="PersonSwap20" /></MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </RichTextBox.ContextMenu>
+                        </RichTextBox>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <!-- Modern Status Bar -->
+        <Border Grid.Row="3"
+                Padding="16,6"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                Background="{DynamicResource ApplicationBackgroundBrush}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Document statistics with chips -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                        <ui:SymbolIcon Symbol="TextWordCount20" FontSize="13" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,4,0" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Status.CharacterCount, StringFormat=글자 수: {0:N0}}"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   FontSize="12" />
+                    </StackPanel>
+
+                    <TextBlock Text="·" Foreground="{DynamicResource TextFillColorTertiaryBrush}" Margin="0,0,16,0" VerticalAlignment="Center" />
+
+                    <TextBlock Text="{Binding Status.CharacterCountWithoutSpaces, StringFormat=공백 제외: {0:N0}}"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               FontSize="12"
+                               Margin="0,0,16,0"
+                               VerticalAlignment="Center" />
+
+                    <TextBlock Text="·" Foreground="{DynamicResource TextFillColorTertiaryBrush}" Margin="0,0,16,0" VerticalAlignment="Center" />
+
+                    <TextBlock Text="{Binding Status.LineCount, StringFormat=줄 수: {0:N0}}"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               FontSize="12"
+                               Margin="0,0,16,0"
+                               VerticalAlignment="Center" />
+
+                    <TextBlock Text="·" Foreground="{DynamicResource TextFillColorTertiaryBrush}" Margin="0,0,16,0" VerticalAlignment="Center" />
+
+                    <TextBlock Text="{Binding Status.ParagraphCount, StringFormat=문단 수: {0:N0}}"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               FontSize="12"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Right: Save Timestamp -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ui:SymbolIcon Symbol="CloudCheckmark20" FontSize="14" Foreground="{DynamicResource TextFillColorTertiaryBrush}" Margin="0,0,6,0" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Status.LastSavedText}"
+                               Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                               FontSize="12" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</ui:FluentWindow>

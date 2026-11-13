@@ -1,0 +1,68 @@
+<ui:FluentWindow x:Class="EssayOrganizer.App.Views.PrintPreviewWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 Title="출력 미리보기"
+                 Height="760"
+                 Width="920"
+                 WindowStartupLocation="CenterOwner"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- TitleBar -->
+        <ui:TitleBar Grid.Row="0"
+                     Title="논술 인쇄 미리보기"
+                     ShowMaximize="True"
+                     ShowMinimize="False" />
+
+        <!-- Top Action Bar -->
+        <Border Grid.Row="1"
+                Padding="20,10"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,0,0,1"
+                Background="{DynamicResource ApplicationBackgroundBrush}">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal">
+                    <ui:Button Appearance="Primary"
+                               Icon="{ui:SymbolIcon Symbol=Print24}"
+                               Content="인쇄 시작"
+                               Click="PrintButton_Click"
+                               Padding="16,8"
+                               Margin="0,0,10,0" />
+                    <ui:Button Appearance="Secondary"
+                               Icon="{ui:SymbolIcon Symbol=Dismiss24}"
+                               Content="닫기"
+                               Click="CloseButton_Click"
+                               Padding="16,8" />
+                </StackPanel>
+                <TextBlock Text="A4 규격 용지 미리보기"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Right"
+                           FontSize="12" />
+            </DockPanel>
+        </Border>
+
+        <!-- Document Viewer with styled frame -->
+        <Border Grid.Row="2"
+                Margin="18"
+                CornerRadius="10"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1">
+            <Border.Effect>
+                <DropShadowEffect Color="#000000" BlurRadius="12" Opacity="0.08" ShadowDepth="3" />
+            </Border.Effect>
+            <FlowDocumentScrollViewer Name="PreviewReader"
+                                      Margin="6"
+                                      IsToolBarVisible="False" />
+        </Border>
+    </Grid>
+</ui:FluentWindow>

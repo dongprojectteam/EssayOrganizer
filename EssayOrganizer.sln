@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssayOrganizer.App", "EssayOrganizer.App\EssayOrganizer.App.csproj", "{0995EAAD-DD6A-47B3-813E-72364C86AE79}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EssayOrganizer.App.Tests", "EssayOrganizer.App.Tests\EssayOrganizer.App.Tests.csproj", "{8810334B-6DDB-47A6-A374-BE4A056AAD71}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0995EAAD-DD6A-47B3-813E-72364C86AE79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0995EAAD-DD6A-47B3-813E-72364C86AE79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0995EAAD-DD6A-47B3-813E-72364C86AE79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0995EAAD-DD6A-47B3-813E-72364C86AE79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8810334B-6DDB-47A6-A374-BE4A056AAD71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8810334B-6DDB-47A6-A374-BE4A056AAD71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8810334B-6DDB-47A6-A374-BE4A056AAD71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8810334B-6DDB-47A6-A374-BE4A056AAD71}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
+

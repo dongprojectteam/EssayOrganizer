@@ -1,1 +1,67 @@
+# ========================================
+# .NET / Visual Studio
+# ========================================
+
+## Build outputs
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+
+## NuGet
+*.nupkg
+*.snupkg
+.nuget/
+**/packages/
+
+## Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+## MSBuild
+*.log
+[Dd]esktopAppPackaging/
+
+## Publish output
+publish_inno_tmp/
+publish_test/
+
+# ========================================
+# Installer / Build output
+# ========================================
 Output/
+
+# ========================================
+# OS / Editor
+# ========================================
+
+## Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+## macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+## JetBrains Rider
+.idea/
+*.sln.iml
+
+## VS Code
+# .vscode/   # uncomment if you don't want to share VS Code settings
+
+# ========================================
+# Misc
+# ========================================
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
